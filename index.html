@@ -61,7 +61,7 @@
 </head>
 <body>
   <h1>🌿 廉洁大作战 🌿</h1>
-  <p>点击清廉小蓝人加分！错点贪腐小红人会扣分！</p>
+  <p>点击贪腐小红人加分！错点清廉小蓝人会扣分！</p>
   <div id="score">得分: 0</div>
   <div id="timer">倒计时: 60 秒</div>
   <div id="controls">
@@ -164,7 +164,7 @@
         const dx = mouseX - (t.x + 25);
         const dy = mouseY - (t.y + 25);
         if (dx * dx + dy * dy < 25 * 25) {
-          if (!t.isCorrupt) score += 1;
+          if (t.isCorrupt) score += 1;
           else score -= 1;
           createParticles(t.x + 25, t.y + 25, t.isCorrupt ? '#e53935' : '#1e88e5');
           targets.splice(i, 1);
@@ -192,8 +192,11 @@
       particles = [];
       scoreDisplay.textContent = `得分: ${score}`;
       timerDisplay.textContent = `倒计时: ${gameTime} 秒`;
+
       music.currentTime = 0;
-      music.play();
+      music.play().catch((e) => {
+        console.log('音频播放被阻止了，等待用户操作', e);
+      });
 
       targetInterval = setInterval(spawnTarget, 1000);
       gameTimer = setInterval(() => {
