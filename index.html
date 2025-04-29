@@ -86,6 +86,7 @@
 
     let score = 0;
     let targets = [];
+    let particles = [];
     let isRunning = false;
     let isPaused = false;
     let gameTime = 60;
@@ -105,6 +106,37 @@
       targets.push({ x, y, isCorrupt, timestamp: Date.now() });
     }
 
+    function createParticles(x, y, color) {
+      for (let i = 0; i < 10; i++) {
+        particles.push({
+          x,
+          y,
+          dx: (Math.random() - 0.5) * 4,
+          dy: (Math.random() - 0.5) * 4,
+          life: 30,
+          color
+        });
+      }
+    }
+
+    function drawParticles() {
+      for (let p of particles) {
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 2, 0, 2 * Math.PI);
+        ctx.fill();
+      }
+    }
+
+    function updateParticles() {
+      particles = particles.filter(p => p.life > 0);
+      for (let p of particles) {
+        p.x += p.dx;
+        p.y += p.dy;
+        p.life--;
+      }
+    }
+
     function drawTargets() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       for (const t of targets) {
@@ -118,6 +150,7 @@
         ctx.textBaseline = 'middle';
         ctx.fillText(t.isCorrupt ? '贪' : '廉', t.x + 25, t.y + 25);
       }
+      drawParticles();
     }
 
     canvas.addEventListener('click', (e) => {
@@ -131,8 +164,9 @@
         const dx = mouseX - (t.x + 25);
         const dy = mouseY - (t.y + 25);
         if (dx * dx + dy * dy < 25 * 25) {
-          if (!t.isCorrupt) score += 1;    // 点击蓝色小人加分！
-          else score -= 1;                 // 点击红色小人扣分！
+          if (!t.isCorrupt) score += 1;
+          else score -= 1;
+          createParticles(t.x + 25, t.y + 25, t.isCorrupt ? '#e53935' : '#1e88e5');
           targets.splice(i, 1);
           scoreDisplay.textContent = `得分: ${score}`;
           break;
@@ -142,6 +176,7 @@
 
     function updateGame() {
       drawTargets();
+      updateParticles();
       const now = Date.now();
       targets = targets.filter(t => now - t.timestamp < 2000);
       if (isRunning && !isPaused) requestAnimationFrame(updateGame);
@@ -154,6 +189,7 @@
       score = 0;
       gameTime = 60;
       targets = [];
+      particles = [];
       scoreDisplay.textContent = `得分: ${score}`;
       timerDisplay.textContent = `倒计时: ${gameTime} 秒`;
       music.currentTime = 0;
